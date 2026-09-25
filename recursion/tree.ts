@@ -168,3 +168,120 @@ export const removeBST = <T>(
   root.right = removeBST(root.right, current.value);
   return root;
 };
+
+export const updateBST = <T>(
+  root: BinaryNode<T> | undefined,
+  target: T,
+  replacement: T,
+): BinaryNode<T> | undefined => {
+  if (!root) return;
+
+  let current: BinaryNode<T> | undefined = root;
+  while (current) {
+    if (current.value === target) {
+      if (target === replacement) return root;
+      return insertBST(removeBST(root, target), replacement);
+    }
+    current = current.value > target ? current.left : current.right;
+  }
+
+  return root;
+};
+export const rotateLeft = <T>(root: BinaryNode<T>) => {
+  const newRoot = root.right!;
+  root.right = newRoot.left;
+  newRoot.left = root;
+  return newRoot;
+};
+export const rotateRight = <T>(root: BinaryNode<T>) => {
+  const newRoot = root.left!;
+  root.left = newRoot.right;
+  newRoot!.right = root;
+  return newRoot;
+};
+export const insertAVL = <T>(root: BinaryNode<T> | undefined, item: T) => {
+  if (!root) return { value: item } as BinaryNode<T>;
+  if (root.value > item) {
+    root.left = insertAVL(root.left, item);
+  }
+  if (root.value < item) {
+    root.right = insertAVL(root.right, item);
+  }
+  const balance = treeHeight(root.left) - treeHeight(root.right);
+  if (balance > 1) {
+    if (root.left && root.left.value < item) {
+      root.left = rotateLeft(root.left);
+    }
+    return rotateRight(root);
+  } else if (balance < -1) {
+    if (root.right && root.right.value > item) {
+      root.right = rotateRight(root.right);
+    }
+    return rotateLeft(root);
+  }
+  return root;
+};
+export const deleteAVL = <T>(
+  root: BinaryNode<T> | undefined,
+  target: T,
+): BinaryNode<T> | undefined => {
+  if (!root) return;
+
+  if (root.value > target) {
+    root.left = deleteAVL(root.left, target);
+  } else if (root.value < target) {
+    root.right = deleteAVL(root.right, target);
+  } else {
+    if (!root.left) return root.right;
+    if (!root.right) return root.left;
+
+    let successor = root.right;
+    while (successor.left) {
+      successor = successor.left;
+    }
+
+    root.value = successor.value;
+    root.right = deleteAVL(root.right, successor.value);
+  }
+
+  const balance = treeHeight(root.left) - treeHeight(root.right);
+
+  if (balance > 1) {
+    if (root.left && treeHeight(root.left.left) < treeHeight(root.left.right)) {
+      root.left = rotateLeft(root.left);
+    }
+    return rotateRight(root);
+  }
+
+  if (balance < -1) {
+    if (
+      root.right &&
+      treeHeight(root.right.right) < treeHeight(root.right.left)
+    ) {
+      root.right = rotateRight(root.right);
+    }
+    return rotateLeft(root);
+  }
+
+  return root;
+};
+export const updateAVL = <T>(
+  root: BinaryNode<T> | undefined,
+  target: T,
+  replacement: T,
+): BinaryNode<T> | undefined => {
+  if (!root) return;
+
+  let current: BinaryNode<T> | undefined = root;
+
+  while (current) {
+    if (current.value === target) {
+      if (target === replacement) return root;
+      return insertAVL(deleteAVL(root, target), replacement);
+    }
+
+    current = current.value > target ? current.left : current.right;
+  }
+
+  return root;
+};

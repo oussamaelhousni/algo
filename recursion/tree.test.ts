@@ -5,12 +5,18 @@ import {
   countNodes,
   dfs,
   compareTrees,
+  deleteAVL,
   invertTree,
+  insertAVL,
   insertBST,
   isBalanced,
   preorderSearch,
   removeBST,
+  rotateLeft,
+  rotateRight,
   treeHeight,
+  updateBST,
+  updateAVL,
 } from "./tree.ts";
 
 describe("preorderSearch", () => {
@@ -692,5 +698,311 @@ describe("removeBST", () => {
         right: { value: 20, left: undefined, right: undefined },
       },
     });
+  });
+});
+
+describe("updateBST", () => {
+  it("updates a node while preserving BST ordering", () => {
+    const tree = {
+      value: 10,
+      left: {
+        value: 5,
+        left: undefined,
+        right: { value: 7, left: undefined, right: undefined },
+      },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    const updatedTree = updateBST(tree, 5, 12);
+
+    expect(updatedTree).toEqual({
+      value: 10,
+      left: { value: 7, left: undefined, right: undefined },
+      right: {
+        value: 15,
+        left: { value: 12, left: undefined, right: undefined },
+        right: undefined,
+      },
+    });
+  });
+
+  it("returns the original tree when the target is missing", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    expect(updateBST(tree, 99, 12)).toBe(tree);
+    expect(tree).toEqual({
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    });
+  });
+
+  it("does not change the tree when the replacement is equal to the target", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    expect(updateBST(tree, 5, 5)).toBe(tree);
+    expect(tree.left?.value).toBe(5);
+  });
+});
+
+describe("updateAVL", () => {
+  it("updates a node and preserves AVL ordering and balance", () => {
+    let tree = insertAVL(undefined, 20);
+    for (const value of [10, 30, 5, 15, 25, 35]) {
+      tree = insertAVL(tree, value);
+    }
+
+    const updatedTree = updateAVL(tree, 5, 27);
+
+    expect(updatedTree).toMatchObject({
+      value: 20,
+      left: {
+        value: 10,
+        right: { value: 15 },
+      },
+      right: {
+        value: 30,
+        left: {
+          value: 25,
+          right: { value: 27 },
+        },
+        right: { value: 35 },
+      },
+    });
+    expect(treeHeight(updatedTree)).toBe(4);
+  });
+
+  it("keeps the tree balanced after a replacement on the right side", () => {
+    let tree = insertAVL(undefined, 20);
+    for (const value of [10, 30, 5, 15, 25, 35]) {
+      tree = insertAVL(tree, value);
+    }
+
+    const updatedTree = updateAVL(tree, 5, 40);
+
+    expect(updatedTree).toMatchObject({
+      value: 20,
+      left: { value: 10, right: { value: 15 } },
+      right: {
+        value: 30,
+        left: { value: 25 },
+        right: {
+          value: 35,
+          right: { value: 40 },
+        },
+      },
+    });
+    expect(treeHeight(updatedTree)).toBe(4);
+  });
+
+  it("returns the original tree when the target is missing", () => {
+    const tree = insertAVL(undefined, 10);
+
+    expect(updateAVL(tree, 99, 12)).toBe(tree);
+  });
+});
+
+describe("tree rotations", () => {
+  it("rotates a tree left and returns the new root", () => {
+    const root = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: {
+        value: 15,
+        left: { value: 12, left: undefined, right: undefined },
+        right: { value: 20, left: undefined, right: undefined },
+      },
+    };
+    const pivot = root.right;
+
+    const newRoot = rotateLeft(root);
+
+    expect(newRoot).toEqual({
+      value: 15,
+      left: {
+        value: 10,
+        left: { value: 5, left: undefined, right: undefined },
+        right: { value: 12, left: undefined, right: undefined },
+      },
+      right: { value: 20, left: undefined, right: undefined },
+    });
+    expect(newRoot).toBe(pivot);
+  });
+
+  it("rotates a tree right and returns the new root", () => {
+    const root = {
+      value: 10,
+      left: {
+        value: 5,
+        left: { value: 2, left: undefined, right: undefined },
+        right: { value: 7, left: undefined, right: undefined },
+      },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+    const pivot = root.left;
+
+    const newRoot = rotateRight(root);
+
+    expect(newRoot).toEqual({
+      value: 5,
+      left: { value: 2, left: undefined, right: undefined },
+      right: {
+        value: 10,
+        left: { value: 7, left: undefined, right: undefined },
+        right: { value: 15, left: undefined, right: undefined },
+      },
+    });
+    expect(newRoot).toBe(pivot);
+  });
+});
+
+describe("insertAVL", () => {
+  it("creates a root when the tree is empty", () => {
+    expect(insertAVL(undefined, 10)).toMatchObject({ value: 10 });
+  });
+
+  it.each([
+    {
+      name: "left-left insertion",
+      values: [30, 20, 10],
+      expected: {
+        value: 20,
+        left: { value: 10 },
+        right: { value: 30 },
+      },
+    },
+    {
+      name: "right-right insertion",
+      values: [10, 20, 30],
+      expected: {
+        value: 20,
+        left: { value: 10 },
+        right: { value: 30 },
+      },
+    },
+    {
+      name: "left-right insertion",
+      values: [30, 10, 20],
+      expected: {
+        value: 20,
+        left: { value: 10 },
+        right: { value: 30 },
+      },
+    },
+    {
+      name: "right-left insertion",
+      values: [10, 30, 20],
+      expected: {
+        value: 20,
+        left: { value: 10 },
+        right: { value: 30 },
+      },
+    },
+  ])("balances the tree after $name", ({ values, expected }) => {
+    let root = insertAVL(undefined, values[0]);
+
+    for (const value of values.slice(1)) {
+      root = insertAVL(root, value);
+    }
+
+    expect(root).toMatchObject(expected);
+    expect(treeHeight(root)).toBe(2);
+  });
+});
+
+describe("deleteAVL", () => {
+  it("returns undefined for an empty tree", () => {
+    expect(deleteAVL(undefined, 10)).toBeUndefined();
+  });
+
+  it("does not change the tree when the target is absent", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    expect(deleteAVL(tree, 99)).toEqual(tree);
+  });
+
+  it("removes a leaf node", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    expect(deleteAVL(tree, 5)).toMatchObject({
+      value: 10,
+      left: undefined,
+      right: { value: 15 },
+    });
+  });
+
+  it("replaces a node with two children using its in-order successor", () => {
+    const tree = {
+      value: 20,
+      left: { value: 10, left: undefined, right: undefined },
+      right: {
+        value: 30,
+        left: { value: 25, left: undefined, right: undefined },
+        right: { value: 40, left: undefined, right: undefined },
+      },
+    };
+
+    expect(deleteAVL(tree, 20)).toMatchObject({
+      value: 25,
+      left: { value: 10 },
+      right: {
+        value: 30,
+        left: undefined,
+        right: { value: 40 },
+      },
+    });
+  });
+
+  it("rebalances the tree after deletion", () => {
+    const tree = {
+      value: 30,
+      left: {
+        value: 20,
+        left: {
+          value: 10,
+          left: { value: 5, left: undefined, right: undefined },
+          right: undefined,
+        },
+        right: { value: 25, left: undefined, right: undefined },
+      },
+      right: {
+        value: 40,
+        left: undefined,
+        right: { value: 50, left: undefined, right: undefined },
+      },
+    };
+
+    const updatedTree = deleteAVL(tree, 50);
+
+    expect(updatedTree).toMatchObject({
+      value: 20,
+      left: {
+        value: 10,
+        left: { value: 5 },
+        right: undefined,
+      },
+      right: {
+        value: 30,
+        left: { value: 25 },
+        right: { value: 40 },
+      },
+    });
+    expect(treeHeight(updatedTree)).toBe(3);
   });
 });
