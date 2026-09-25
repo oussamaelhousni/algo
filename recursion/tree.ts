@@ -121,3 +121,50 @@ export const dfs = <T>(root: BinaryNode<T> | undefined, target: T): boolean => {
 
   return found;
 };
+
+export const insertBST = <T>(
+  root: BinaryNode<T> | undefined,
+  item: T,
+): BinaryNode<T> => {
+  if (!root) {
+    return { value: item, left: undefined, right: undefined };
+  }
+
+  if (root.value >= item) {
+    root.left = insertBST(root.left, item);
+  } else {
+    root.right = insertBST(root.right, item);
+  }
+
+  return root;
+};
+
+export const removeBST = <T>(
+  root: BinaryNode<T> | undefined,
+  target: T,
+): BinaryNode<T> | undefined => {
+  if (!root) return;
+  if (root.value > target) {
+    root.left = removeBST(root.left, target);
+    return root;
+  }
+  if (root.value < target) {
+    root.right = removeBST(root.right, target);
+    return root;
+  }
+  if (!root.right) {
+    return root.left;
+  }
+  if (!root.left) {
+    return root.right;
+  }
+  let current = root.right;
+  while (current.left) {
+    current = current.left;
+  }
+
+  root.value = current.value;
+
+  root.right = removeBST(root.right, current.value);
+  return root;
+};

@@ -6,8 +6,10 @@ import {
   dfs,
   compareTrees,
   invertTree,
+  insertBST,
   isBalanced,
   preorderSearch,
+  removeBST,
   treeHeight,
 } from "./tree.ts";
 
@@ -485,5 +487,210 @@ describe("dfs", () => {
 
     expect(dfs(tree, "left")).toBe(true);
     expect(dfs(tree, "missing")).toBe(false);
+  });
+});
+
+describe("insertBST", () => {
+  it("creates and returns a root when the tree is empty", () => {
+    expect(insertBST(undefined, 10)).toEqual({
+      value: 10,
+      left: undefined,
+      right: undefined,
+    });
+  });
+
+  it("inserts smaller or equal values into the left subtree", () => {
+    const tree = {
+      value: 10,
+      left: undefined,
+      right: undefined,
+    };
+
+    insertBST(tree, 5);
+
+    expect(tree).toEqual({
+      value: 10,
+      left: { value: 5 },
+      right: undefined,
+    });
+  });
+
+  it("inserts duplicate values into the left subtree", () => {
+    const tree = {
+      value: 10,
+      left: undefined,
+      right: undefined,
+    };
+
+    insertBST(tree, 10);
+
+    expect(tree).toEqual({
+      value: 10,
+      left: { value: 10 },
+      right: undefined,
+    });
+  });
+
+  it("inserts larger values into the right subtree", () => {
+    const tree = {
+      value: 10,
+      left: undefined,
+      right: undefined,
+    };
+
+    insertBST(tree, 15);
+
+    expect(tree).toEqual({
+      value: 10,
+      left: undefined,
+      right: { value: 15 },
+    });
+  });
+
+  it("traverses the tree before inserting at the correct leaf", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    insertBST(tree, 7);
+    insertBST(tree, 20);
+
+    expect(tree).toEqual({
+      value: 10,
+      left: {
+        value: 5,
+        left: undefined,
+        right: { value: 7 },
+      },
+      right: {
+        value: 15,
+        left: undefined,
+        right: { value: 20 },
+      },
+    });
+  });
+});
+
+describe("removeBST", () => {
+  it("returns undefined when the tree is empty", () => {
+    expect(removeBST(undefined, 10)).toBeUndefined();
+  });
+
+  it("removes a leaf from the left subtree", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    const updatedTree = removeBST(tree, 5);
+
+    expect(updatedTree).toEqual({
+      value: 10,
+      left: undefined,
+      right: { value: 15, left: undefined, right: undefined },
+    });
+  });
+
+  it("replaces a removed node with its only child", () => {
+    const tree = {
+      value: 10,
+      left: {
+        value: 5,
+        left: { value: 2, left: undefined, right: undefined },
+        right: undefined,
+      },
+      right: undefined,
+    };
+
+    const updatedTree = removeBST(tree, 5);
+
+    expect(updatedTree).toEqual({
+      value: 10,
+      left: { value: 2, left: undefined, right: undefined },
+      right: undefined,
+    });
+  });
+
+  it("removes the root and returns its right child when it has no left child", () => {
+    const tree = {
+      value: 10,
+      left: undefined,
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    const updatedTree = removeBST(tree, 10);
+
+    expect(updatedTree).toEqual({
+      value: 15,
+      left: undefined,
+      right: undefined,
+    });
+  });
+
+  it("searches the right subtree before removing a value", () => {
+    const tree = {
+      value: 10,
+      left: undefined,
+      right: {
+        value: 15,
+        left: { value: 12, left: undefined, right: undefined },
+        right: undefined,
+      },
+    };
+
+    const updatedTree = removeBST(tree, 12);
+
+    expect(updatedTree).toEqual({
+      value: 10,
+      left: undefined,
+      right: {
+        value: 15,
+        left: undefined,
+        right: undefined,
+      },
+    });
+  });
+
+  it("removes one duplicate while preserving the other duplicate", () => {
+    const tree = {
+      value: 10,
+      left: { value: 10, left: undefined, right: undefined },
+      right: { value: 15, left: undefined, right: undefined },
+    };
+
+    const updatedTree = removeBST(tree, 10);
+
+    expect(updatedTree).toEqual({
+      value: 15,
+      left: { value: 10, left: undefined, right: undefined },
+      right: undefined,
+    });
+  });
+
+  it("replaces a node with two children using its in-order successor", () => {
+    const tree = {
+      value: 10,
+      left: { value: 5, left: undefined, right: undefined },
+      right: {
+        value: 15,
+        left: { value: 12, left: undefined, right: undefined },
+        right: { value: 20, left: undefined, right: undefined },
+      },
+    };
+
+    const updatedTree = removeBST(tree, 10);
+
+    expect(updatedTree).toEqual({
+      value: 12,
+      left: { value: 5, left: undefined, right: undefined },
+      right: {
+        value: 15,
+        left: undefined,
+        right: { value: 20, left: undefined, right: undefined },
+      },
+    });
   });
 });
