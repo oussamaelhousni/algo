@@ -61,3 +61,36 @@ export const bfs = (
 
   return path.reverse();
 };
+
+export const dfs = (
+  graph: weigthedAdjacencyList,
+  source: number,
+  needle: number,
+): number[] | null => {
+  const path: number[] = [];
+  const seen = new Set<number>();
+  walk(graph, source, needle, path, seen);
+  if (path.length === 0) return null;
+  return path;
+};
+
+const walk = (
+  graph: weigthedAdjacencyList,
+  current: number,
+  needle: number,
+  path: number[],
+  seen: Set<number>,
+) => {
+  if (seen.has(current)) return false;
+  seen.add(current);
+  path.push(current);
+  if (current === needle) return true;
+  const list = graph[current];
+  for (const node of list) {
+    if (walk(graph, node.to, needle, path, seen)) {
+      return true;
+    }
+  }
+  path.pop();
+  return false;
+};
