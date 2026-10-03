@@ -94,3 +94,51 @@ const walk = (
   path.pop();
   return false;
 };
+
+const hasUnvisited = (seen: number[], distances: number[]) => {
+  return seen.some((item, i) => !item && distances[i] < Infinity);
+};
+
+const getLowestUnivisted = (seen: number[], distances: number[]) => {
+  return seen.reduce((lowest, _, idx) => {
+    const lowestDist = lowest === -1 ? Infinity : distances[lowest];
+    if (lowestDist > distances[idx]) return idx;
+    return lowest;
+  });
+};
+export const dijkstra = (
+  graph: weigthedAdjacencyList,
+  source: number,
+  dest: number,
+): number[] | null => {
+  const distances = new Array(graph.length).fill(Infinity);
+  const prev = new Array(graph.length).fill(-1);
+  const seen = new Array(graph.length).fill(false);
+
+  distances[source] = 0;
+  while (hasUnvisited(seen, distances)) {
+    const lowest = getLowestUnivisted(seen, distances);
+    seen[lowest] = true;
+    const edges = graph[lowest];
+    for (let i = 0; i < edges.length; i++) {
+      const edge = edges[i];
+      if (seen[edge.to]) continue;
+      seen[edge.to] = true;
+      const newDist = distances[lowest] + edge.weight;
+
+      if (newDist < distances[edge.to]) {
+        distances[edge.to] = newDist;
+        prev[edge.to] = lowest;
+      }
+    }
+  }
+  if (prev[dest] === -1) return null;
+  const path = [];
+  let current = dest;
+
+  while (prev[current] !== -1) {
+    path.push(current);
+    current = prev[current];
+  }
+  return path.reverse();
+};
